@@ -14,7 +14,7 @@ const {authMiddleware} = require("../middelware/authMiddleware"); // Assuming yo
 router.post("/", authMiddleware, createJob);
 
 // Route to get all jobs (public route)
-router.get("/getalljobs", authMiddleware, getAllJobs);
+router.get("/getalljobs", getAllJobs);
 
 // Route to get a job by ID (public route)
 router.get("/:id", getJobById);
