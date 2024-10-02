@@ -72,7 +72,14 @@ app.use(morgan('tiny')); // Logs to the console in 'tiny' format
 // app.use(morgan('combined', { stream: accessLogStream })); // Logs detailed info to the file
 
 
-app.use(cors());
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow all origins
+    callback(null, origin);
+  },
+  credentials: true
+}));
 // app.use(morgan("tiny"));
 app.use(express.json());
 
