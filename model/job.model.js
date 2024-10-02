@@ -33,8 +33,12 @@ const jobSchema = new mongoose.Schema({
         type: String, // Required experience (e.g., 5+ years)
         required: true,
     },
-    salaryRange: {
-        type: String, // Salary range (e.g., $120,000 - $150,000)
+    minSalary: {
+        type: Number, // Minimum salary (numeric field for easier filtering)
+        required: true,
+    },
+    maxSalary: {
+        type: Number, // Maximum salary (numeric field for easier filtering)
         required: true,
     },
     responsibilities: {
@@ -54,7 +58,6 @@ const jobSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-
 });
 
 const Job = mongoose.model('Job', jobSchema);

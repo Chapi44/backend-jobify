@@ -1,5 +1,4 @@
 // authMiddleware.js
-
 const jwt = require('jsonwebtoken');
 const { StatusCodes } = require('http-status-codes');
 const User = require('../model/user');
@@ -22,7 +21,6 @@ const authAuthorization = (role) => {
   };
 };
 
-// Authentication middleware function
 // Authentication middleware function
 
 const authMiddleware = async (req, res, next) => {

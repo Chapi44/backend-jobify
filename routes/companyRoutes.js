@@ -5,6 +5,7 @@ const {
   getCompanyById,
   updateCompanyById,
   deleteCompanyById,
+  searchCompanies
 } = require("../controller/companyController");
 const { uploadSingleImage } = require("../middelware/fileupload"); // File upload middleware
 const {authMiddleware} = require("../middelware/authMiddleware"); // Authentication middleware
@@ -25,5 +26,7 @@ router.put("/:id", authMiddleware, uploadSingleImage, updateCompanyById);
 
 // Route to delete a company by ID
 router.delete("/:id", authMiddleware, deleteCompanyById);
+
+router.get("/companies/search", searchCompanies);
 
 module.exports = router;

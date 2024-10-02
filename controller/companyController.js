@@ -46,15 +46,36 @@ const createCompany = async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
-// Get all companies
+
+// Get all companies with pagination
 const getAllCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().populate("createdBy");
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
+    // Calculate skip value based on page and limit
+    const skip = (page - 1) * limit;
+
+    // Fetch total number of companies
+    const totalCompanies = await Company.countDocuments();
+
+    // Fetch companies with pagination
+    const companies = await Company.find()
+      .skip(skip)
+      .limit(limit)
+      .populate("createdBy")
+      .sort({ createdAt: -1 }) // Sort by newest companies first
+      .lean(); // Convert results to plain JS objects
+
+    // Send the paginated company results
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Companies fetched successfully",
       companies,
+      currentPage: page,
+      totalPages: Math.ceil(totalCompanies / limit),
+      totalCompanies,
     });
   } catch (error) {
     console.error(error);
@@ -63,6 +84,7 @@ const getAllCompanies = async (req, res) => {
     });
   }
 };
+
 
 // Get company by ID
 const getCompanyById = async (req, res) => {
@@ -158,10 +180,61 @@ const deleteCompanyById = async (req, res) => {
   }
 };
 
+// Search companies by name or description with pagination
+const searchCompanies = async (req, res) => {
+  try {
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate skip value based on page and limit
+    const skip = (page - 1) * limit;
+
+    // Search term for filtering companies by name or description
+    const searchTerm = req.query.search || "";
+
+    // Build the filter object based on searchTerm
+    const filter = {};
+    if (searchTerm) {
+      filter.$or = [
+        { name: { $regex: searchTerm, $options: "i" } }, // Case-insensitive search in the company name
+        { description: { $regex: searchTerm, $options: "i" } } // Case-insensitive search in the company description
+      ];
+    }
+
+    // Fetch total number of companies matching the search
+    const totalCompanies = await Company.countDocuments(filter);
+
+    // Fetch companies with pagination and search
+    const companies = await Company.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .populate("createdBy")
+      .sort({ createdAt: -1 }) // Sort by newest companies first
+      .lean(); // Convert results to plain JS objects
+
+    // Send the paginated and filtered company results
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Companies fetched successfully",
+      companies,
+      currentPage: page,
+      totalPages: Math.ceil(totalCompanies / limit),
+      totalCompanies,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: "Failed to fetch companies",
+    });
+  }
+};
+
 module.exports = {
   createCompany,
   getAllCompanies,
   getCompanyById,
   updateCompanyById,
   deleteCompanyById,
+  searchCompanies
 };

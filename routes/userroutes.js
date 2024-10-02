@@ -5,15 +5,13 @@ const {
   deleteuser,
   updateUser,
   updateUserPassword,
-  
   searchUserByUsername,
-
   getProfileByToken,
 
  
 } = require("../controller/usercontroller");
 const {
-  authMiddleware,
+  authMiddleware,authAuthorization
 } = require("../middelware/authMiddleware");
 
 const multerMiddleware = require("../middelware/multerSetup");
@@ -21,7 +19,7 @@ const multerMiddleware = require("../middelware/multerSetup");
 const router = express.Router();
 
 router.get(
-  "/getallusers",
+  "/getallusers",authMiddleware,authAuthorization('superadmin'),
   getAllUsers
 );
 

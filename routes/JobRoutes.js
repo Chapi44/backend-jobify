@@ -5,6 +5,7 @@ const {
   getJobById,
   updateJobById,
   deleteJobById,
+  searchJobs
 } = require("../controller/jobController");
 const router = express.Router();
 const {authMiddleware} = require("../middelware/authMiddleware"); // Assuming you have an auth middleware for protected routes
@@ -13,7 +14,7 @@ const {authMiddleware} = require("../middelware/authMiddleware"); // Assuming yo
 router.post("/", authMiddleware, createJob);
 
 // Route to get all jobs (public route)
-router.get("/", getAllJobs);
+router.get("/getalljobs", authMiddleware, getAllJobs);
 
 // Route to get a job by ID (public route)
 router.get("/:id", getJobById);
@@ -23,5 +24,6 @@ router.put("/:id", authMiddleware, updateJobById);
 
 // Route to delete a job by ID (only accessible by authenticated users, e.g., admin)
 router.delete("/:id", authMiddleware, deleteJobById);
+router.get("/searchjobs/search", searchJobs);
 
 module.exports = router;
