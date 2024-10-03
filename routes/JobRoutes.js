@@ -14,7 +14,7 @@ const {authMiddleware, authAuthorization} = require("../middelware/authMiddlewar
 router.post("/", authMiddleware, authAuthorization(['admin', 'superadmin']), createJob);
 
 // Route to get all jobs (public route)
-router.get("/getalljobs", authMiddleware, getAllJobs);
+router.get("/getalljobs", getAllJobs);
 
 // Route to get a job by ID (public route)
 router.get("/:id", getJobById);
