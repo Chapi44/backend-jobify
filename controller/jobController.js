@@ -17,7 +17,8 @@ const createJob = async (req, res) => {
       responsibilities,
       requirements,
       tags,
-      Applylink
+      Applylink,
+      deadline
     } = req.body;
 
     // Create the job with min and max salary
@@ -34,7 +35,8 @@ const createJob = async (req, res) => {
       responsibilities,
       requirements,
       tags, // Optional
-      Applylink
+      Applylink,
+      deadline, // Add deadline field
     });
 
     return res.status(StatusCodes.CREATED).json({
@@ -50,53 +52,42 @@ const createJob = async (req, res) => {
   }
 };
 
+
 // Get all Jobs
 const getAllJobs = async (req, res) => {
   try {
-    // Parse query parameters for pagination and filtering
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10; // Default limit is 10
-
-    // Calculate skip value based on page and limit
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
-    // Filter parameters from the query
     const { location, company, salaryRange, jobType } = req.query;
 
-    // Construct the filtering object
     const filter = {};
-
-    // Add filters if they are provided in the query
     if (location) filter.location = location;
-    if (company) filter.company = company; // Company should be the ObjectId or company name, depending on your schema
+    if (company) filter.company = company;
     if (jobType) filter.jobType = jobType;
-
-    // Salary range filtering
     if (salaryRange) {
-      const [minSalary, maxSalary] = salaryRange.replace(/,/g, '').split('-').map(Number); // Convert string to numbers
+      const [minSalary, maxSalary] = salaryRange.replace(/,/g, '').split('-').map(Number);
       filter.minSalary = { $gte: minSalary };
       filter.maxSalary = { $lte: maxSalary };
     }
 
-    // Fetch total number of jobs matching the filter
     const totalJobs = await Job.countDocuments(filter);
 
-    // Fetch jobs with pagination, sorting, and filtering
     const jobs = await Job.find(filter)
-      .sort({ createdAt: -1 }) // Sort by newest jobs first
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate({
-        path: "company",
-        select: "name logo", // Select only the necessary fields from the company
-      })
-      .populate({
-        path: "createdBy",
-        select: "name email", // Select only necessary fields from the user who created the job
-      })
-      .lean(); // Convert the results to plain JS objects for easier manipulation
+      .populate({ path: "company", select: "name logo" })
+      .populate({ path: "createdBy", select: "name email" })
+      .lean();
 
-    // Send the paginated and filtered job results
+    // Calculate days left for each job
+    jobs.forEach(job => {
+      const currentDate = new Date();
+      const timeDiff = new Date(job.deadline) - currentDate;
+      job.daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert to days
+    });
+
     res.status(StatusCodes.OK).json({
       jobs,
       currentPage: page,
@@ -114,26 +105,33 @@ const getAllJobs = async (req, res) => {
 const getJobById = async (req, res) => {
   try {
     const { id } = req.params;
-    const job = await Job.findById(id).populate("company createdBy");
+    const job = await Job.findById(id)
+      .populate("company", "name logo")
+      .populate("createdBy", "name email");
 
     if (!job) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "Job not found" });
+      return res.status(StatusCodes.NOT_FOUND).json({ error: "Job not found" });
     }
+
+    // Calculate days left until the deadline
+    const currentDate = new Date();
+    const timeDiff = new Date(job.deadline) - currentDate;
+    const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert to days
 
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Job fetched successfully",
-      job,
+      job: {
+        ...job.toObject(),
+        daysLeft,
+      },
     });
   } catch (error) {
     console.error(error);
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: "Failed to fetch job" });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to fetch job" });
   }
 };
+
 
 
 // Update Job by ID

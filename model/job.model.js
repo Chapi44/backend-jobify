@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 // Define Job Schema
+// Define Job Schema
 const jobSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -50,8 +51,12 @@ const jobSchema = new mongoose.Schema({
         type: [String], // An array of job requirements
         required: true,
     },
-    Applylink:{
+    Applylink: {
         type: String,
+        required: true,
+    },
+    deadline: {
+        type: Date, // Deadline date
         required: true,
     },
     createdAt: {
@@ -62,3 +67,4 @@ const jobSchema = new mongoose.Schema({
 
 const Job = mongoose.model('Job', jobSchema);
 module.exports = Job;
+

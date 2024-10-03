@@ -7,7 +7,6 @@ const {
   updateUserPassword,
   searchUserByUsername,
   getProfileByToken,
-
  
 } = require("../controller/usercontroller");
 const {
