@@ -7,11 +7,18 @@ const {
   logout,
   forgotPassword,
   ResetPassword,
+  registeruser
 
 } = require("../controller/authController");
+const {
+  authMiddleware,authAuthorization
+} = require("../middelware/authMiddleware");
 
 
-router.post("/register", register);
+router.post("/register", authMiddleware,authAuthorization(['superadmin']), register);
+
+router.post("/registeruser", registeruser);
+
 
 
 router.post("/login", signin);

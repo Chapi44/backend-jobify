@@ -75,7 +75,75 @@ const register = async (req, res) => {
 };
 
 
+const registeruser = async (req, res) => {
+  try {
+    let { name, email, password, phoneNumber, country, city, dateOfBirth, educationLevel} = req.body;
 
+    // Check if the email already exists
+    const emailAlreadyExists = await User.findOne({ email });
+    if (emailAlreadyExists) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Email already exists" });
+    }
+    const phoneNumberAlreadyExists = await User.findOne({ phoneNumber });
+    if (phoneNumberAlreadyExists) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Phone number already exists" });
+    }
+
+const role = "user"
+
+    // Create the user
+    const user = await User.create({
+      name,
+      email,
+      phoneNumber,
+      password,
+      role,
+      country,
+      city,
+      dateOfBirth,
+      educationLevel
+
+    });
+
+
+    const secretKey = process.env.JWT_SECRET;
+    const tokenExpiration = process.env.JWT_LIFETIME;
+
+    if (!secretKey) {
+      throw new Error("JWT secret key is not configured.");
+    }
+
+    if (!tokenExpiration) {
+      throw new Error("Token expiration is not configured.");
+    }
+
+    // Generate JWT token with specific user fields
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        phoneNumber: user.phoneNumber,
+        country: user.country,
+        city: user.city,
+ 
+      },
+      secretKey,
+      { expiresIn: tokenExpiration }
+    );
+
+    return res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Successfully registered",
+      token, 
+      user
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal server error" });
+  }
+};
 
 const signin = async (req, res) => {
   try {
@@ -286,6 +354,7 @@ module.exports = {
   logout,
   forgotPassword,
   ResetPassword,
+  registeruser
 
 
 

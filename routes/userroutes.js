@@ -19,31 +19,31 @@ const multerMiddleware = require("../middelware/multerSetup");
 const router = express.Router();
 
 router.get(
-  "/getallusers",authMiddleware,authAuthorization('superadmin'),
+  "/getallusers",authMiddleware,authAuthorization(['superadmin']),
   getAllUsers
 );
 
 router.get(
-  "/getuserById/:id",
+  "/getuserById/:id",authMiddleware,authAuthorization(['superadmin']),
   getUserById
 );
 router.post(
-  "/delete/:id",
+  "/delete/:id",authMiddleware,authAuthorization(['superadmin']),
   deleteuser
 );
 router.patch(
   "/update/:id",
-  authMiddleware,
+  authMiddleware,authAuthorization(['superadmin']),
   updateUser
 );
 router.patch(
-  "/updateUserPassword/:id",
+  "/updateUserPassword/:id",authMiddleware,authAuthorization(['superadmin']),
   updateUserPassword
 );
 
 
 
-router.get("/search", authMiddleware, searchUserByUsername);
+router.get("/search", authMiddleware, authMiddleware,authAuthorization(['superadmin']), searchUserByUsername);
 
 
 

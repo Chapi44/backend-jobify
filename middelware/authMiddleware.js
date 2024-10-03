@@ -4,11 +4,11 @@ const { StatusCodes } = require('http-status-codes');
 const User = require('../model/user');
 
 // Authorization middleware function
-const authAuthorization = (role) => {
+const authAuthorization = (roles) => {
   return async (req, res, next) => {
     try {
-      // Check if the user has the required role for accessing the route
-      if (!req.user || req.user.role !== role) {
+      // Check if the user exists and has one of the allowed roles
+      if (!req.user || !roles.includes(req.user.role)) {
         return res.status(StatusCodes.FORBIDDEN).json({ error: 'Forbidden' });
       }
       
