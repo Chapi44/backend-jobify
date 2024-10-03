@@ -260,7 +260,7 @@ const forgotPassword = async (req, res) => {
     if (email) {
       console.log(email);
 
-      var forgotPasswordLink = `https://sarada.vercel.app/?token=${forgotPasswordToken}`;
+      var forgotPasswordLink = `http://localhost:5173/?token=${forgotPasswordToken}`;
       var mailOptions = {
         from: "jobify.in@gmail.com",
         to: email,
