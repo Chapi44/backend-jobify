@@ -33,11 +33,11 @@ router.post(
 );
 router.patch(
   "/update/:id",
-  authMiddleware,authAuthorization(['superadmin']),
+  authMiddleware,
   updateUser
 );
 router.patch(
-  "/updateUserPassword/:id",authMiddleware,authAuthorization(['superadmin']),
+  "/updateUserPassword/:id",authMiddleware,
   updateUserPassword
 );
 

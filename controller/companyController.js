@@ -113,47 +113,53 @@ const getCompanyById = async (req, res) => {
 
 // Update company by ID
 const updateCompanyById = async (req, res) => {
+  const companyId = req.params.id; // Assuming company ID is passed as a route parameter
+
   try {
-    const { id } = req.params;
-    const { name, description } = req.body;
-
-    // Upload new logo to Cloudinary if file is provided
-    let logoUrl = null;
+    // Check if the logo file is provided
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.buffer, {
-        folder: "company_logos",
+      // Upload the new image to Cloudinary using the buffer from memory storage
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "company_logos" }, // Cloudinary folder
+          (error, result) => {
+            if (error) {
+              return reject(error); // Handle Cloudinary upload error
+            }
+            resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer); // End the stream and pass the file buffer
       });
-      logoUrl = result.secure_url;
+
+      // Update company details including the logo URL
+      await Company.findByIdAndUpdate(companyId, {
+        name: req.body.name,
+        description: req.body.description,
+        logo: result.secure_url, // Use the new secure URL from Cloudinary
+      });
+    } else {
+      // Update company details without changing the logo
+      await Company.findByIdAndUpdate(companyId, {
+        name: req.body.name,
+        description: req.body.description,
+      });
     }
 
-    const updatedCompany = await Company.findByIdAndUpdate(
-      id,
-      {
-        name,
-        description,
-        logo: logoUrl ? logoUrl : undefined, // Only update the logo if a new one is provided
-      },
-      { new: true } // Return the updated document
-    );
+    // Fetch updated company details
+    const updatedCompany = await Company.findById(companyId);
 
-    if (!updatedCompany) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        error: "Company not found",
-      });
-    }
-
-    return res.status(StatusCodes.OK).json({
-      success: true,
+    // Respond with success and updated company details
+    res.status(StatusCodes.OK).send({
       message: "Company updated successfully",
       company: updatedCompany,
     });
   } catch (error) {
-    console.error(error);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: "Failed to update company",
-    });
+    console.error("Error updating company:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
+
 
 // Delete company by ID
 const deleteCompanyById = async (req, res) => {
